@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/organicare
+    username: postgres
+    password: tadiewa
+
+
+#  datasource:
+#    url: jdbc:postgresql://dpg-d34285mr433s738vi7kg-a.oregon-postgres.render.com:5432/organicare
+#    username: tadiewa
+#    password: XPkwirtf8aVqGh8EeF3v1b1OnkYLMdJs
+
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  main:
+    allow-bean-definition-overriding: true
+
+
+
+server:
+  port: 9033
+
+
+application:
+  security:
+    jwt:
+      secret-key: DRo3wXPnHyBb+1KXVID6x69oDg4IPi4CnmViCaENw2M=
+      expiration: 86400000 # a day
+      refresh-token:
+        expiration: 604800000 # 7 days
