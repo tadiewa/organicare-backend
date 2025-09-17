@@ -8,6 +8,7 @@ package zw.com.organicare.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import lombok.*;
@@ -28,10 +29,12 @@ public class SalesAgentInventory {
     private int openingStock;
     private int closingStock;
     private int stockIn;
+    @Column(name = "sold")
     private int numberOfProductsSold;
+    @Column(name = "variance")
     private int numberOfProductsFreelyGiven;
 
-    private Date receivedDate;
+    private LocalDate receivedDate;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)

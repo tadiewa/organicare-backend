@@ -24,7 +24,7 @@ import zw.com.organicare.repository.UserRepository;
 import zw.com.organicare.service.salesAgentInv.SalesAgentInventoryService;
 import zw.com.organicare.utils.SalesAgentInventoryMapper;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -36,7 +36,7 @@ public class SalesAgentInventoryServiceImpl implements SalesAgentInventoryServic
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final StockOveralRepository stockOveralRepository;
-    //private final SalesAgentInventoryService self;
+
 
     @Override
     @Transactional
@@ -60,7 +60,7 @@ public class SalesAgentInventoryServiceImpl implements SalesAgentInventoryServic
             inventory.setOpeningStock(inventory.getClosingStock());
             inventory.setStockIn(inventory.getStockIn() + dto.getStockIn());
             inventory.setClosingStock(inventory.getOpeningStock() + inventory.getStockIn() - inventory.getNumberOfProductsSold());
-            inventory.setReceivedDate(new Date());
+            inventory.setReceivedDate(LocalDate.now());
             inventory.setBranch(Branch.valueOf(dto.getBranch()));
         } else {
             // First-time assignment
