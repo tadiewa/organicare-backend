@@ -26,7 +26,7 @@ public class StockOveral {
     private int stockIn;
     private int stockOut;
     private String reasonForStockOut;
-
+    private Integer numberOfProductsFreelyGiven;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

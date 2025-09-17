@@ -18,7 +18,7 @@ import zw.com.organicare.constants.Role;
 import zw.com.organicare.dto.user.AuthResponse;
 import zw.com.organicare.dto.user.LoginRequest;
 import zw.com.organicare.dto.user.UserDto;
-import zw.com.organicare.exception.EmailAlreadyExistsException;
+import zw.com.organicare.exception.AlreadyExistsException;
 import zw.com.organicare.exception.LoginFailed;
 import zw.com.organicare.exception.RegistrationFailedException;
 import zw.com.organicare.exception.UserNotFound;
@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             log.error("Registration failed: Email already exists------------------------------->: {}", request.getEmail());
-            throw new EmailAlreadyExistsException("Email already exists");
+            throw new AlreadyExistsException("Email already exists");
         }
 
         User user = User.builder()

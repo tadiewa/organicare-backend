@@ -17,8 +17,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<?> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ResponseEntity<?> handleEmailAlreadyExists(AlreadyExistsException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(

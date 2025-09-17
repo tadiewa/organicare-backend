@@ -29,6 +29,7 @@ public class SalesAgentInventory {
     private int closingStock;
     private int stockIn;
     private int numberOfProductsSold;
+    private int numberOfProductsFreelyGiven;
 
     private Date receivedDate;
 

@@ -8,6 +8,7 @@ package zw.com.organicare.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 

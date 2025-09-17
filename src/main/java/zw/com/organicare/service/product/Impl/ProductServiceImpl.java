@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import zw.com.organicare.dto.product.ProductRequestDto;
 import zw.com.organicare.dto.product.ProductResponseDto;
+import zw.com.organicare.exception.AlreadyExistsException;
 import zw.com.organicare.model.Product;
 import zw.com.organicare.repository.ProductRepository;
 import zw.com.organicare.service.product.ProductService;
@@ -31,6 +32,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponseDto createProduct(ProductRequestDto dto) {
+        productRepository.findByName(dto.getName()).ifPresent(p -> {
+            throw new AlreadyExistsException("Product with name " + dto.getName() + " already exists");
+        });
         Product product = ProductMapper.toEntity(dto);
 
         // Always generate a unique product code
