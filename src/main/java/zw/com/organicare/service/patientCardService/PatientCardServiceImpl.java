@@ -18,15 +18,11 @@ import zw.com.organicare.exception.UserNotFound;
 import zw.com.organicare.model.*;
 import zw.com.organicare.repository.*;
 import zw.com.organicare.security.JwtService;
-import zw.com.organicare.service.authService.CustomUserDetailsService;
 import zw.com.organicare.utils.CodeGeneratorService;
 import zw.com.organicare.utils.PatientCardMapper;
 import zw.com.organicare.utils.RequestFormMapper;
 import zw.com.organicare.utils.SonographerReportMapper;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -130,7 +126,7 @@ public class PatientCardServiceImpl implements PatientCardService {
 
      log.info("Is user active? ------------------------> {}", currentUser.getIsActive());
      if(currentUser.getIsActive()==false){
-         throw new RuntimeException("User is not active");}
+         throw new UserNotFound("User is not active");}
 
         RequestForm requestForm = requestFormRepository.findById(requestFormId)
                 .orElseThrow(() -> new ResourceNotFoundException("RequestForm not found"));

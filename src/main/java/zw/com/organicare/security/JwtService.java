@@ -26,9 +26,7 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
-    //private final RedisTemplate<String, String> redisTemplate;
 
-    //private static final String BLACKLIST_PREFIX = "blacklist:";
 
     public String extractUsername(String token) {
         try {
@@ -84,19 +82,6 @@ public class JwtService {
                 .compact();
     }
 
-//    public void blacklistToken(String token) {
-//        Date expiryDate = extractExpiration(token);
-//        long ttl = (expiryDate.getTime() - System.currentTimeMillis()) / 1000;
-//
-//        if (ttl > 0) {
-//            redisTemplate.opsForValue().set(BLACKLIST_PREFIX + token, "true", ttl, TimeUnit.SECONDS);
-//            log.info("Blacklisted token with TTL {} seconds", ttl);
-//        }
-//    }
-//
-//    public boolean isTokenBlacklisted(String token) {
-//        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
-//    }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
@@ -111,70 +96,4 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-//    public String extractUsername(String token) {
-//        try {
-//            log.debug("Attempting to extract email from token");
-//            String email = extractClaim(token, Claims::getSubject);
-//            log.debug("Extracted email: {}", email);
-//            return email;
-//        } catch (ExpiredJwtException e) {
-//            log.error("JWT token has expired");
-//            return null;
-//        } catch (MalformedJwtException e) {
-//            log.error("Malformed JWT token");
-//            return null;
-//        } catch (Exception e) {
-//            log.error("Error extracting email from token: {}", e.getMessage());
-//            return null;
-//        }
-//    }
-//
-//    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-//        final Claims claims = extractAllClaims(token);
-//        return claimsResolver.apply(claims);
-//    }
-//
-//    public String generateToken(UserDetails userDetails) {
-//        return generateToken(new HashMap<>(), userDetails);
-//    }
-//
-//    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-//        User user = (User) userDetails;
-//        extraClaims.put("role", user.getRole().name());
-//        return Jwts
-//                .builder()
-//                .setClaims(extraClaims)
-//                .setSubject(userDetails.getUsername())
-//                .setIssuedAt(new Date(System.currentTimeMillis()))
-//                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-//                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-//                .compact();
-//    }
-//
-//    public boolean isTokenValid(String token, UserDetails userDetails) {
-//        final String username = extractUsername(token);
-//        return (username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-//    }
-//
-//    private boolean isTokenExpired(String token) {
-//        return extractExpiration(token).before(new Date());
-//    }
-//
-//    private Date extractExpiration(String token) {
-//        return extractClaim(token, Claims::getExpiration);
-//    }
-//
-//    private Claims extractAllClaims(String token) {
-//        return Jwts
-//                .parserBuilder()
-//                .setSigningKey(getSigningKey())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody();
-//    }
-//
-//    private Key getSigningKey() {
-//        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-//        return Keys.hmacShaKeyFor(keyBytes);
-//    }
 }

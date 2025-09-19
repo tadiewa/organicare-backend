@@ -6,6 +6,7 @@
 
 package zw.com.organicare.service.authService.Impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final HttpServletRequest request;
 
     @Override
     public UserDto register(UserDto request) {
@@ -151,5 +153,18 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public User getAuthenticatedUser() {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("JWT token missing");
+        }
+
+        String token = authorizationHeader.substring(7);
+        String username = jwtService.extractUsername(token);
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFound("User not found with username: " + username));
+    }
 }
 

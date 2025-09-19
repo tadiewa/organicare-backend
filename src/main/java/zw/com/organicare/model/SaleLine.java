@@ -7,9 +7,17 @@
 package zw.com.organicare.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "sale_lines")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SaleLine {
 
     @Id
@@ -17,8 +25,8 @@ public class SaleLine {
     private Long saleLineId;
 
     private Integer quantity;
-    private Double price;
-    private Double lineTotal;
+    private BigDecimal unitPrice;
+    private BigDecimal lineTotal;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id", nullable = false)

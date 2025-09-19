@@ -46,4 +46,9 @@ public class StockMovement {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requested_by_user_id")
     private User RequestBy;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sales_agent_id")
+    private User salesAgent;
 }

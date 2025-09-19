@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.validator.constraints.UniqueElements;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Product {
     private String productCode;
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
     private String category;
     private boolean isActive;
 

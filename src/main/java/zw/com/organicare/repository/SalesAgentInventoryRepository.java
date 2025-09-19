@@ -18,4 +18,9 @@ public interface SalesAgentInventoryRepository extends JpaRepository<SalesAgentI
     List<SalesAgentInventory> findByProduct_ProductId(Long productId);
     Optional<SalesAgentInventory> findByReceivedBy_UserIdAndProduct_ProductId(Long userId, Long productId);
     Optional<SalesAgentInventory>  findByReceivedByAndProduct(User agent, Product product);
+    //Optional<SalesAgentInventory> findByProductIdAndReceivedBy_UserId(Long productId, Long agentId);
+    Optional<SalesAgentInventory> findByProduct_ProductIdAndReceivedBy_UserId(Long productId, Long userId);
+
+    List<SalesAgentInventory> findAllByReceivedBy_UserId(Long agentId);
+
 }

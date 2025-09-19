@@ -30,9 +30,10 @@ public class SalesAgentInventory {
     private int closingStock;
     private int stockIn;
     @Column(name = "sold")
-    private int numberOfProductsSold;
+    private int numberOfProductsSold =0;
+
     @Column(name = "variance")
-    private int numberOfProductsFreelyGiven;
+    private int numberOfProductsFreelyGiven =0;
 
     private LocalDate receivedDate;
 

@@ -8,6 +8,8 @@ package zw.com.organicare.dto.product;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -18,7 +20,7 @@ public class ProductResponseDto {
     private String productCode; // auto-generated
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
     private String category;
     private boolean isActive;
 }

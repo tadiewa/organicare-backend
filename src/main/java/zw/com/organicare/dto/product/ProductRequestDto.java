@@ -8,6 +8,8 @@ package zw.com.organicare.dto.product;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -16,7 +18,7 @@ import lombok.*;
 public class ProductRequestDto {
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
     private String category;
     private boolean isActive;
 }
