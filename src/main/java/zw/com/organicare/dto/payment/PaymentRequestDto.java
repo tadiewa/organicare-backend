@@ -17,6 +17,6 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentRequestDto {
     private  Long  paymentTypeId;
-    private String paymentType;
+    //private String paymentType;
     private BigDecimal amount;
 }

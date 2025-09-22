@@ -18,9 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class SaleRequestDto {
-    private Long agentId;
+
     private Long patientId;
-    private Branch branch;
+   // private Branch branch;
     private boolean changeProvided;
     private List<SaleLineRequestDto> saleLines;
     private List<PaymentRequestDto> payments;

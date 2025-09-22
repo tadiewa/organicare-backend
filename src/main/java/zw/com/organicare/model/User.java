@@ -11,7 +11,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import zw.com.organicare.constants.Branch;
 import zw.com.organicare.constants.Role;
 
 import java.util.Collection;
@@ -44,8 +43,9 @@ public class User implements UserDetails {
     @Column(nullable = true)
     private Role role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+
+    @OneToOne
+    @JoinColumn(name = "branch_id")
     private Branch branch;
 
     private String fullName;

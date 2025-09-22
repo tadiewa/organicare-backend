@@ -13,7 +13,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
-import zw.com.organicare.constants.Branch;
 import zw.com.organicare.constants.Role;
 
 @Component
@@ -32,6 +31,6 @@ public class UserDto {
     private String fullName;
     private String contactInfo;
     private Boolean isActive;
-    private Branch branch;
+    private Long branchId;
 
 }

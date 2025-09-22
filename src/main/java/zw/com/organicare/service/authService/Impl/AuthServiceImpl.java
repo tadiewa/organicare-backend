@@ -14,16 +14,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import zw.com.organicare.constants.Branch;
 import zw.com.organicare.constants.Role;
 import zw.com.organicare.dto.user.AuthResponse;
 import zw.com.organicare.dto.user.LoginRequest;
 import zw.com.organicare.dto.user.UserDto;
-import zw.com.organicare.exception.AlreadyExistsException;
-import zw.com.organicare.exception.LoginFailed;
-import zw.com.organicare.exception.RegistrationFailedException;
-import zw.com.organicare.exception.UserNotFound;
+import zw.com.organicare.exception.*;
+import zw.com.organicare.model.Branch;
 import zw.com.organicare.model.User;
+import zw.com.organicare.repository.BranchRepository;
 import zw.com.organicare.repository.UserRepository;
 import zw.com.organicare.security.JwtService;
 import zw.com.organicare.service.authService.AuthService;
@@ -38,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final HttpServletRequest request;
+    private final BranchRepository branchRepository;
 
     @Override
     public UserDto register(UserDto request) {
@@ -47,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
             log.error("Registration failed: Email already exists------------------------------->: {}", request.getEmail());
             throw new AlreadyExistsException("Email already exists");
         }
-
+      Branch branch = branchRepository.findById(request.getBranchId()).orElseThrow(()->new ResourceNotFoundException("Branch not found"));
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -55,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
                 .contactInfo(request.getContactInfo())
                 .role(Role.valueOf(request.getRole().name()))
                 .username(request.getUsername())
-                .branch(Branch.valueOf(request.getBranch().name()))
+                .branch(branch)
                 .isActive(false)
                 .build();
 
@@ -69,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
                     .fullName(user.getFullName())
                     .contactInfo(user.getContactInfo())
                     .role(Role.valueOf(user.getRole().name()))
-                    .branch(Branch.valueOf(user.getBranch().name()))
+                    .branchId(user.getBranch().getBranchId())
                     .isActive(user.getIsActive())
                     .build();
         } catch (Exception e) {
@@ -85,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             // First check if the user exists
-            var user = userRepository.findByEmail(request.getUsername())
+            var user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new LoginFailed("User not found"));
 
             // Then attempt authentication
@@ -96,9 +95,9 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
 
-            log.info("User authenticated successfully---------------------------->: {}", user.getEmail());
+            log.info("User authenticated successfully---------------------------->: {}", user.getUsername());
             String token = jwtService.generateToken(user);
-            log.debug("JWT token generated for user----------------------->: {}", user.getEmail());
+            log.debug("JWT token generated for user----------------------->: {}", user.getUsername());
 
             return AuthResponse.builder()
                     .token(token)
@@ -123,6 +122,9 @@ public class AuthServiceImpl implements AuthService {
                     return new UserNotFound("Email not found");
                 });
 
+        Branch branch = branchRepository.findById(request.getBranchId()).orElseThrow(()
+                ->new ResourceNotFoundException("Branch not found"));
+
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -130,7 +132,7 @@ public class AuthServiceImpl implements AuthService {
                 .contactInfo(request.getContactInfo())
                 .role(Role.valueOf(request.getRole().name()))
                 .username(request.getUsername())
-                .branch(Branch.valueOf(request.getBranch().name()))
+                .branch(branch)
                 .isActive(false)
                 .build();
 
@@ -144,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
                     .fullName(user.getFullName())
                     .contactInfo(user.getContactInfo())
                     .role(Role.valueOf(user.getRole().name()))
-                    .branch(Branch.valueOf(user.getBranch().name()))
+                    .branchId(user.getBranch().getBranchId())
                     .isActive(user.getIsActive())
                     .build();
         } catch (Exception e) {

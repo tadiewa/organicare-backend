@@ -17,8 +17,10 @@ import zw.com.organicare.dto.sale.SaleRequestDto;
 import zw.com.organicare.dto.sale.SaleResponseDto;
 import zw.com.organicare.exception.InsufficientStockException;
 import zw.com.organicare.exception.ResourceNotFoundException;
+import zw.com.organicare.exception.UserNotFound;
 import zw.com.organicare.model.*;
 import zw.com.organicare.repository.*;
+import zw.com.organicare.service.authService.AuthService;
 import zw.com.organicare.service.pos.sale.SaleService;
 import zw.com.organicare.utils.SaleMapper;
 
@@ -41,11 +43,20 @@ public class SaleServiceImpl implements SaleService {
     private final PaymentTypeRepository paymentTypeRepository;
     private final StockMovementRepository stockMovementRepository;
     private final UncollectedChangeRepository uncollectedChangeRepository;
+    private final AuthService authService;
     @Transactional
     public SaleResponseDto createSale(SaleRequestDto request) {
         // 1. load agent
-        User agent = userRepository.findById(request.getAgentId())
+
+
+        User currentUser = authService.getAuthenticatedUser();
+
+        User agent = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
+
+       if (Boolean.FALSE.equals(currentUser.getIsActive())){
+              throw new UserNotFound("Inactive user cannot perform sales");
+       }
 
         // optional: load patient if provided
         Patient patient = null;
@@ -53,16 +64,17 @@ public class SaleServiceImpl implements SaleService {
             patient = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
         }
-
+   log.info("branch of current user-------------------------------> {}", currentUser.getBranch());
         // 2. create Sale header and link patient
         Sale sale = Sale.builder()
-                .agent(agent)
+                .agent(currentUser)
                 .patient(patient)                     // <-- link patient
                 .saleDate(LocalDateTime.now())
                 .totalAmountDue(BigDecimal.ZERO)
                 .totalPaid(BigDecimal.ZERO)
                 .changeGiven(BigDecimal.ZERO)
                 .uncollectedChange(BigDecimal.ZERO)
+                .branch(currentUser.getBranch())
                // .saleLines(new ArrayList<>())
                // .payments(new ArrayList<>())
                 .build();
@@ -91,7 +103,7 @@ public class SaleServiceImpl implements SaleService {
             inventoryRepository.save(inventory);
 
             // create sale line
-            BigDecimal unitPrice = lineReq.getUnitPrice() != null ? lineReq.getUnitPrice() : product.getPrice();
+            BigDecimal unitPrice =  product.getPrice();
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(lineReq.getQuantity()));
 
             SaleLine saleLine = SaleLine.builder()

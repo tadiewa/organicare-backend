@@ -8,6 +8,7 @@ package zw.com.organicare.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import zw.com.organicare.model.Branch;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,6 +43,10 @@ public class Sale {
     private BigDecimal uncollectedChange = BigDecimal.ZERO;
 
     private LocalDateTime saleDate = LocalDateTime.now();
+
+    @OneToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 
     @ManyToOne
     @JoinColumn(name = "sales_agent_id")

@@ -44,8 +44,8 @@ public class SecurityConfig {
                     var corsConfig = new CorsConfiguration();
                     corsConfig.setAllowedOrigins(List.of(
                             "http://localhost:4201/",
-                            "https://organicare.onrender.com",
-                            "https://africode-291b.onrender.com/"
+                            "https://organicare.onrender.com"
+
                     ));
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type"));

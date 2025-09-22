@@ -18,6 +18,6 @@ import java.math.BigDecimal;
 public class SaleLineRequestDto {
     private Long productId;
     private int quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal lineTotal;
+//    private BigDecimal unitPrice;
+//    private BigDecimal lineTotal;
 }

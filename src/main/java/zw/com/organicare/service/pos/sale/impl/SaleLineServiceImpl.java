@@ -40,7 +40,7 @@ public class SaleLineServiceImpl implements SaleLineService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        BigDecimal unitPrice = request.getUnitPrice() != null ? request.getUnitPrice() : product.getPrice();
+        BigDecimal unitPrice = product.getPrice();
         BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(request.getQuantity()));
 
         SaleLine saleLine = SaleLine.builder()
