@@ -18,6 +18,7 @@ import zw.com.organicare.exception.UserNotFound;
 import zw.com.organicare.model.*;
 import zw.com.organicare.repository.*;
 import zw.com.organicare.security.JwtService;
+import zw.com.organicare.service.authService.AuthService;
 import zw.com.organicare.utils.CodeGeneratorService;
 import zw.com.organicare.utils.PatientCardMapper;
 import zw.com.organicare.utils.RequestFormMapper;
@@ -33,18 +34,29 @@ public class PatientCardServiceImpl implements PatientCardService {
     private final RequestFormRepository requestFormRepository;
     private final UserRepository userRepository;
     private final SonographerReportRepository sonographerReportRepository;
-    private final JwtService jwtService;
-    private final HttpServletRequest request;
+    private final AuthService authService;
     private final CodeGeneratorService codeGeneratorService;
+    private final AppointmentRepository appointmentRepository;
 
     @Override
     public PatientCardDto createPatientCard(Long patientId, PatientCardDto dto) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new UserNotFound("Patient not found"));
 
+        var appointment = appointmentRepository.findAllByPatient_PatientId(patientId)
+                .stream()
+                .filter(app -> Boolean.FALSE.equals(app.getIsCompleted()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No completed appointment found for patient"));
+
+        User currentUser = authService.getAuthenticatedUser();
+        if (Boolean.FALSE == currentUser.getIsActive()) {
+            throw new UserNotFound("User is not active");
+        }
         PatientCard card = new PatientCard();
         card.setCardNumber(codeGeneratorService.generateCardNumber());
         card.setPatient(patient);
+        card.setDoctorSignature(currentUser.getFullName());
         card.setDiagnosis(dto.getDiagnosis());
         card.setRemarks(dto.getRemarks());
         card.setTreatmentPlan(dto.getTreatmentPlan());
@@ -55,9 +67,9 @@ public class PatientCardServiceImpl implements PatientCardService {
         card.setSocialHistory(dto.getSocialHistory());
         card.setPresentingComplaints(dto.getPresentingComplaints());
         card.setPatientSignature(dto.getPatientSignature());
-
-
-
+        card.setUltrasoundRequestFlag(dto.getUltrasoundRequestFlag());
+        card.setWeight(appointment.getWeight());
+        card.setHeight(appointment.getHeight());
 
         PatientCard saved = patientCardRepository.save(card);
         return PatientCardMapper.toDto(saved);
@@ -109,23 +121,12 @@ public class PatientCardServiceImpl implements PatientCardService {
     @Override
     public SonographerReportDto addSonographerReport(Long requestFormId, SonographerReportDto dto) {
 
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("JWT token missing");
-        }
-        String token = authorizationHeader.substring(7);
 
+       User currentUser = authService.getAuthenticatedUser();
 
-        String username = jwtService.extractUsername(token);
+      log.info("Current user:------------------------> {}", currentUser.getFullName());
 
-
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFound("User not found with email: " + username));
-     log.info("Current user:------------------------> {}", currentUser.getFullName());
-
-
-     log.info("Is user active? ------------------------> {}", currentUser.getIsActive());
-     if(currentUser.getIsActive()==false){
+     if(Boolean.FALSE==currentUser.getIsActive()){
          throw new UserNotFound("User is not active");}
 
         RequestForm requestForm = requestFormRepository.findById(requestFormId)

@@ -31,7 +31,6 @@ public class PatientCardMapper {
                 .patientSignature(card.getPatientSignature())
                 .doctorSignature(card.getDoctorSignature())
                 .patientId(card.getPatient() != null ? card.getPatient().getPatientId() : null)
-                .patientName(card.getPatient() != null ? card.getPatient().getFullName() : null)
                 .requestForms(card.getRequestForms() != null
                         ? card.getRequestForms().stream()
                         .map(RequestFormMapper::toDto)

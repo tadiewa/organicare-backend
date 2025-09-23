@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import zw.com.organicare.dto.Appointment.AppointmentDto;
 import zw.com.organicare.dto.RequestForm.RequestFormDto;
 
 import java.util.Date;
@@ -36,11 +37,9 @@ public class PatientCardDto {
     private String doctorSignature;
     private Boolean ultrasoundRequestFlag;
 
-    // ✅ Instead of embedding the entire Patient entity, just reference ID and name
     private Long patientId;
-    private String patientName;
 
-    // ✅ If you want to include request forms inline
     private List<RequestFormDto> requestForms;
+
 }
 

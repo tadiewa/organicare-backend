@@ -9,6 +9,9 @@ package zw.com.organicare.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -26,12 +29,15 @@ public class Appointment {
     private Patient patient;
     @ManyToOne
     @JoinColumn(name = "doctor_user_id")
-    private User   doctor;
-    private String branch;
+    private User  doctor;
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
     private Double weight;
     private Double height;
-    private String isApproved;
-    private String isCompleted;
+    private Boolean isApproved = false;
+    private Boolean isCompleted = false;
+    private LocalDateTime appointmentDate;
     @ManyToOne
     @JoinColumn(name = "created_by_user_id")
     private User createdBy;

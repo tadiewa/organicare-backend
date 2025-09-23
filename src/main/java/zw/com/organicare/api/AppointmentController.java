@@ -39,5 +39,11 @@ public class AppointmentController {
         appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("docUpdate/{id}")
+    public ResponseEntity<AppointmentDto> docUpdate(@PathVariable Long id,
+                                                    @RequestBody AppointmentDto dto) {
+        return ResponseEntity.ok(appointmentService.docUpdateAppointment(id, dto));
+    }
 }
 

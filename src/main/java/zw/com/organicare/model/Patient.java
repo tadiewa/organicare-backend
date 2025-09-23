@@ -36,7 +36,7 @@ public class Patient {
     @JoinColumn(name = "emergency_contact_id", referencedColumnName = "emergency_contact_id",nullable = true)
     private EmergencyContact emergencyContact;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rp_Id", referencedColumnName = "agent_Id",nullable = true)
     private ReferringPractitioner referringPractitioner;
 

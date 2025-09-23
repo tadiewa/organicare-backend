@@ -20,11 +20,11 @@ public class AppointmentDto {
     private String appointmentNumber;
     private Long patientId;
     private Long doctorId;
-    private String branch;
+    private Long branchId;
     private Double weight;
     private Double height;
-    private String isApproved;
-    private String isCompleted;
+    private Boolean isApproved;
+    private Boolean isCompleted;
     private Long createdById;
 }
 

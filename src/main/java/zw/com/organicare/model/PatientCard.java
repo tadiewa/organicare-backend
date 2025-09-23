@@ -34,6 +34,9 @@ public class PatientCard{
     private String treatmentPlan;
     private String duration;
     private Date   reviewDate;
+    private String bp;
+    private Double weight;
+    private Double height;
     private String patientSignature;
     private String doctorSignature;
     private Boolean ultrasoundRequestFlag;
@@ -43,5 +46,7 @@ public class PatientCard{
 
     @OneToMany(mappedBy = "patientCard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestForm> requestForms = new ArrayList<>();
+
+
 
 }
