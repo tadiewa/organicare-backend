@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.Date;
 
 import lombok.*;
-import zw.com.organicare.constants.Branch;
+
 
 @Entity
 @Getter
@@ -49,6 +49,8 @@ public class SalesAgentInventory {
     @JoinColumn(name = "issuedBy", referencedColumnName = "userId")
     private User issuedBy; // Warehouse/Admin
 
-    @Enumerated(EnumType.STRING)
+
+    @ManyToOne
+    @JoinColumn(name = "branch_id", nullable= false)
     private Branch branch;
 }

@@ -7,8 +7,10 @@ package zw.com.organicare.service.StockOveralService;
 
 import zw.com.organicare.constants.Branch;
 import zw.com.organicare.constants.MovementType;
+import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryResponseDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralRequestDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralResponseDto;
+import zw.com.organicare.dto.StockOveralRequest.TransferRequest;
 import zw.com.organicare.dto.StockOveralRequest.VarienceRequestDto;
 import zw.com.organicare.model.SalesAgentInventory;
 
@@ -20,6 +22,6 @@ public interface StockOveralService {
     List<StockOveralResponseDto> getAllStock();
     StockOveralResponseDto updateStock(Long id, StockOveralRequestDto dto);
     void deleteStock(Long id);
-    SalesAgentInventory transferToAgent(Long productId, int quantity, Long agentId, Long issuedById, Branch branch, MovementType movementType, String reason);
+    SalesAgentInventoryResponseDto transferToAgent(TransferRequest request);
     StockOveralResponseDto handleVarience(VarienceRequestDto request);
 }

@@ -8,6 +8,9 @@ package zw.com.organicare.dto.StockOveralRequest;
 
 import lombok.*;
 
+import zw.com.organicare.constants.MovementType;
+
+
 import java.util.List;
 
 @Getter
@@ -15,11 +18,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VarienceRequestDto {
+public class TransferRequest {
 
-    private  String reason;
-    private List<VarienceItemDto> items;
-    private Long receivedById;
-    private Long branchId;
-
+    List<VarienceItemDto> items;
+    Long agentId;
+    String reason;
 }

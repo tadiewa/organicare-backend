@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zw.com.organicare.constants.Branch;
 import zw.com.organicare.constants.MovementType;
-import zw.com.organicare.dto.StockOveralRequest.StockOveralRequestDto;
-import zw.com.organicare.dto.StockOveralRequest.StockOveralResponseDto;
-import zw.com.organicare.dto.StockOveralRequest.VarienceRequestDto;
+import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryResponseDto;
+import zw.com.organicare.dto.StockOveralRequest.*;
 import zw.com.organicare.exception.ResourceNotFoundException;
 import zw.com.organicare.exception.UserNotFound;
 import zw.com.organicare.model.*;
@@ -41,6 +40,7 @@ public class StockOveralServiceImpl implements StockOveralService {
     private final AuthService authService;
 
     @Override
+    @Transactional
     public StockOveralResponseDto addStock(StockOveralRequestDto dto) {
 
         var currentUser  = authService.getAuthenticatedUser();
@@ -87,7 +87,7 @@ public class StockOveralServiceImpl implements StockOveralService {
         movement.setProduct(product);
         movement.setQuantity(dto.getStockIn());
         movement.setType(MovementType.IN);
-        movement.setReason(dto.getReason()  + currentUser);
+        movement.setReason(dto.getReason()  + currentUser.getFullName());
         movement.setMovementDate(LocalDateTime.now());
         // issuer is the one who created the stock
         movement.setCreatedBy(receivedFrom);
@@ -124,6 +124,7 @@ public class StockOveralServiceImpl implements StockOveralService {
     }
 
     @Override
+    @Transactional
     public StockOveralResponseDto updateStock(Long id, StockOveralRequestDto dto) {
         StockOveral stock = stockOveralRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Stock not found"));
@@ -144,33 +145,30 @@ public class StockOveralServiceImpl implements StockOveralService {
 
     @Override
     @Transactional
-    public SalesAgentInventory transferToAgent(Long productId,
-                                               int quantity,
-                                               Long agentId,
-                                               Long issuedById,
-                                               Branch branch ,
-                                               MovementType movementType,
-                                               String reason) {
-
-        //  Fetch entities
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-
-        User agent = userRepository.findById(agentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sales agent not found"));
+    public SalesAgentInventoryResponseDto transferToAgent(TransferRequest request) {
 
         var currentUser  = authService.getAuthenticatedUser();
+        User agent = userRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sales agent not found"));
+        SalesAgentInventoryResponseDto response = null;
+
+        for( VarienceItemDto item : request.getItems()){
+
+        //  Fetch entities
+        Product product = productRepository.findById(item.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
 
         // Reduce stock in StockOveral
         StockOveral stock = stockOveralRepository.findByProduct(product)
                 .orElseThrow(() -> new ResourceNotFoundException("No stock available for product"));
 
-        if(stock.getClosingStock() < quantity){
+        if(stock.getClosingStock() <item.getQuantity()){
             throw new IllegalArgumentException("Insufficient stock in warehouse");
         }
 
-        stock.setStockOut(stock.getStockOut() + quantity);
-        stock.setClosingStock(stock.getClosingStock() - quantity);
+        stock.setStockOut(stock.getStockOut() + item.getQuantity().intValue());
+        stock.setClosingStock(stock.getClosingStock() - item.getQuantity().intValue());
         stockOveralRepository.save(stock);
 
         //  Update agent inventory
@@ -185,20 +183,20 @@ public class StockOveralServiceImpl implements StockOveralService {
         agentInventory.setProduct(product);
         agentInventory.setReceivedBy(agent);
         agentInventory.setIssuedBy(currentUser);
-        agentInventory.setBranch(branch);
+        agentInventory.setBranch(currentUser.getBranch());
         agentInventory.setReceivedDate(LocalDate.now());
         agentInventory.setNumberOfProductsSold(agentInventory.getNumberOfProductsSold() != 0
                 ? agentInventory.getNumberOfProductsSold() : 0);
         agentInventory.setNumberOfProductsFreelyGiven(agentInventory.getNumberOfProductsFreelyGiven() != 0
                 ? agentInventory.getNumberOfProductsFreelyGiven() : 0);
         if(optionalInventory.isEmpty()){
-        agentInventory.setClosingStock(quantity);
+        agentInventory.setClosingStock(item.getQuantity().intValue());
         agentInventory.setOpeningStock(0);
-        agentInventory.setStockIn(quantity);
+        agentInventory.setStockIn(item.getQuantity().intValue());
         }else {
-            agentInventory.setClosingStock(previousClosing + quantity);
+            agentInventory.setClosingStock(previousClosing + item.getQuantity().intValue());
             agentInventory.setOpeningStock(previousClosing);
-            agentInventory.setStockIn(agentInventory.getStockIn() + quantity);
+            agentInventory.setStockIn(agentInventory.getStockIn() + item.getQuantity().intValue());
         }
 
         agentInventoryRepository.save(agentInventory);
@@ -206,67 +204,75 @@ public class StockOveralServiceImpl implements StockOveralService {
         //  Record stock movement
         StockMovement movement = new StockMovement();
         movement.setProduct(product);
-        movement.setQuantity(quantity);
-        movement.setType(movementType);
-        movement.setReason( reason  + agent.getFullName());
+        movement.setQuantity(item.getQuantity().intValue());
+        movement.setType(MovementType.IN);
+        movement.setReason(request.getReason() + " " + agent.getFullName());
         movement.setMovementDate(LocalDateTime.now());
         movement.setCreatedBy(currentUser);
         movement.setRequestBy(agent);
 
         stockMovementRepository.save(movement);
-
-        return agentInventory;
+        response = SalesAgentInventoryResponseDto.builder()
+                .productName(product.getName())
+                .receivedBy(agent.getFullName())
+                .issuedBy(currentUser.getFullName())
+                .stockIn(item.getQuantity().intValue())
+                .build();
+        }
+        return response ;
     }
 
     @Override
+    @Transactional
     public StockOveralResponseDto handleVarience(VarienceRequestDto request) {
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
+        var currentUser = authService.getAuthenticatedUser();
+
+        StockOveralResponseDto lastResponse = null;
         User agent = userRepository.findById(request.getReceivedById())
                 .orElseThrow(() -> new ResourceNotFoundException("Sales agent not found"));
 
-      var  currentUser  = authService.getAuthenticatedUser();
-
-
+        for (VarienceItemDto item : request.getItems()) {
+        Product product = productRepository.findById(item.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         // Reduce stock in StockOveral
         StockOveral stock = stockOveralRepository.findByProduct(product)
                 .orElseThrow(() -> new ResourceNotFoundException("No stock available for product"));
 
-        if(stock.getClosingStock() < request.getQuantity()){
+        if (stock.getClosingStock() < item.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock in warehouse");
         }
 
+        stock.setNumberOfProductsFreelyGiven(
+                stock.getNumberOfProductsFreelyGiven() + item.getQuantity().intValue());
+        StockMovement movement = new StockMovement();
+        movement.setProduct(product);
+        movement.setQuantity(item.getQuantity().intValue());
+        movement.setType(MovementType.RETURN);
+        movement.setReason(request.getReason() + agent.getFullName());
+        movement.setMovementDate(LocalDateTime.now());
+        movement.setCreatedBy(currentUser);
+        movement.setRequestBy(agent);
+        movement.setBranch(currentUser.getBranch());
 
-            stock.setNumberOfProductsFreelyGiven(stock.getNumberOfProductsFreelyGiven() +request.getQuantity().intValue());
-
-            StockMovement movement = new StockMovement();
-            movement.setProduct(product);
-            movement.setQuantity(request.getQuantity().intValue());
-            movement.setType(MovementType.RETURN);
-            movement.setReason(request.getReason()  + agent.getFullName());
-            movement.setMovementDate(LocalDateTime.now());
-            movement.setCreatedBy(currentUser);
-            movement.setRequestBy(agent);
-            movement.setBranch(currentUser.getBranch());
-
-            stockMovementRepository.save(movement);
-
-
-        stock.setStockOut(stock.getStockOut() + request.getQuantity().intValue());
-        stock.setClosingStock(stock.getClosingStock() - request.getQuantity().intValue());
+        stockMovementRepository.save(movement);
+        stock.setStockOut(stock.getStockOut() + item.getQuantity().intValue());
+        stock.setClosingStock(stock.getClosingStock() - item.getQuantity().intValue());
         stock.setDateCreated(LocalDate.now());
         stockOveralRepository.save(stock);
 
-        return StockOveralResponseDto .builder()
+            lastResponse = StockOveralResponseDto.builder()
                 .closingStock(stock.getClosingStock())
                 .productName(product.getName())
-                .numberOfProductsFreelyGiven(request.getQuantity().intValue())
+                .numberOfProductsFreelyGiven(item.getQuantity().intValue())
                 .receivedBy(agent.getFullName())
                 .issuedBy(currentUser.getFullName())
                 .reasonForStockOut(request.getReason())
                 .build();
+
+    }
+        return lastResponse;
     }
 }
 

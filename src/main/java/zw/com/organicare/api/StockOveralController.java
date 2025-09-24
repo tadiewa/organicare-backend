@@ -14,10 +14,11 @@ import zw.com.organicare.constants.MovementType;
 import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryResponseDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralRequestDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralResponseDto;
+import zw.com.organicare.dto.StockOveralRequest.TransferRequest;
 import zw.com.organicare.dto.StockOveralRequest.VarienceRequestDto;
 import zw.com.organicare.model.SalesAgentInventory;
 import zw.com.organicare.service.StockOveralService.StockOveralService;
-import zw.com.organicare.utils.SalesAgentInventoryMapper;
+
 
 import java.util.List;
 
@@ -56,20 +57,12 @@ public class StockOveralController {
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<SalesAgentInventoryResponseDto> transferToAgent(
-            @RequestParam Long productId,
-            @RequestParam int quantity,
-            @RequestParam Long agentId,
-            @RequestParam Long issuedById,
-            @RequestParam Branch branch,
-            @RequestParam MovementType movementType,
-            @RequestParam(required = false) String reason) {
+    public ResponseEntity<SalesAgentInventoryResponseDto> transferToAgent(@RequestBody TransferRequest request) {
 
-        SalesAgentInventory inventory = stockOveralService.transferToAgent(productId, quantity, agentId, issuedById, branch,movementType, reason);
-        SalesAgentInventoryResponseDto dto = SalesAgentInventoryMapper.toDto(inventory);
-
-        return ResponseEntity.ok(dto);
+        SalesAgentInventoryResponseDto inventory = stockOveralService.transferToAgent(request);
+        return ResponseEntity.ok(inventory);
     }
+
 
     @PostMapping("/varience")
     public ResponseEntity<StockOveralResponseDto> varience (@RequestBody VarienceRequestDto request){
