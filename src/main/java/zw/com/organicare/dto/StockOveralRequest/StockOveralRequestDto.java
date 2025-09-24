@@ -16,10 +16,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class StockOveralRequestDto {
     private Long productId;
-    private Integer numberOfProductsFreelyGiven;
-    private int openingStock;
     private int stockIn;
-    private String reasonForStockOut;
+    private String reason;
     private Long issuedById;
-    private Long receivedById;
 }

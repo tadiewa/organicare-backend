@@ -15,18 +15,12 @@ import zw.com.organicare.model.User;
 public class StockOveralMapper {
 
     public static StockOveral toEntity(StockOveralRequestDto dto, Product product, User issuedBy, User receivedBy) {
-        StockOveral stock = StockOveral.builder()
+
+        return StockOveral.builder()
                 .product(product)
-                .numberOfProductsFreelyGiven(dto.getNumberOfProductsFreelyGiven())
-                .openingStock(dto.getOpeningStock())
-                .stockIn(dto.getStockIn())
-                .stockOut(0)
-                .closingStock(dto.getOpeningStock() + dto.getStockIn())
-                .reasonForStockOut(dto.getReasonForStockOut())
-                .issuedBy(issuedBy)
-                .receivedBy(receivedBy)
+
                 .build();
-        return stock;
+
     }
 
     public static StockOveralResponseDto toDto(StockOveral stock) {
@@ -41,6 +35,7 @@ public class StockOveralMapper {
                 .reasonForStockOut(stock.getReasonForStockOut())
                 .issuedBy(stock.getIssuedBy().getFullName())
                 .receivedBy(stock.getReceivedBy().getFullName())
+                .branchName(stock.getBranch().getBranchName())
                 .build();
     }
 }

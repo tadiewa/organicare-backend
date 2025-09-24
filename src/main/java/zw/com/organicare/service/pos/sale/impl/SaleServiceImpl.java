@@ -48,7 +48,6 @@ public class SaleServiceImpl implements SaleService {
     public SaleResponseDto createSale(SaleRequestDto request) {
         // 1. load agent
 
-
         User currentUser = authService.getAuthenticatedUser();
 
         User agent = userRepository.findById(currentUser.getUserId())
@@ -68,7 +67,7 @@ public class SaleServiceImpl implements SaleService {
         // 2. create Sale header and link patient
         Sale sale = Sale.builder()
                 .agent(currentUser)
-                .patient(patient)                     // <-- link patient
+                .patient(patient)
                 .saleDate(LocalDateTime.now())
                 .totalAmountDue(BigDecimal.ZERO)
                 .totalPaid(BigDecimal.ZERO)

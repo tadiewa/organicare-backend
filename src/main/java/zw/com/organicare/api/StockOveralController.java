@@ -14,6 +14,7 @@ import zw.com.organicare.constants.MovementType;
 import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryResponseDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralRequestDto;
 import zw.com.organicare.dto.StockOveralRequest.StockOveralResponseDto;
+import zw.com.organicare.dto.StockOveralRequest.VarienceRequestDto;
 import zw.com.organicare.model.SalesAgentInventory;
 import zw.com.organicare.service.StockOveralService.StockOveralService;
 import zw.com.organicare.utils.SalesAgentInventoryMapper;
@@ -70,4 +71,9 @@ public class StockOveralController {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping("/varience")
+    public ResponseEntity<StockOveralResponseDto> varience (@RequestBody VarienceRequestDto request){
+        StockOveralResponseDto response = stockOveralService.handleVarience(request);
+        return ResponseEntity.ok(response);
+    }
 }

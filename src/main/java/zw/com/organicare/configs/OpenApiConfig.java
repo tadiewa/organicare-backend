@@ -31,8 +31,8 @@ import org.springframework.context.annotation.Configuration;
         servers = {
                 @Server(
                         description = "Local Environment",
-                       url = "http://localhost:9033"
-                        // url = "https://organicare.onrender.com"
+                      url = "http://localhost:9033"
+                       // url = "https://organicare.onrender.com"
                 )
         }
 )

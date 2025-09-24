@@ -7,7 +7,6 @@
 package zw.com.organicare.dto.StockOveralRequest;
 
 import lombok.*;
-import java.util.Date;
 
 @Getter
 @Setter
@@ -25,5 +24,6 @@ public class StockOveralResponseDto {
     private String reasonForStockOut;
     private String issuedBy;
     private String receivedBy;
+    private String branchName;
 }
 
