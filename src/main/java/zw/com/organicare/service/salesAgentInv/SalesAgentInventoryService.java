@@ -5,17 +5,15 @@
 
 package zw.com.organicare.service.salesAgentInv;
 
-import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryRequestDto;
+import org.springframework.data.domain.Page;
+
 import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryResponseDto;
 
-import java.util.List;
 
 public interface SalesAgentInventoryService {
-    SalesAgentInventoryResponseDto assignOrUpdateStock(SalesAgentInventoryRequestDto dto);
 
-    List<SalesAgentInventoryResponseDto> getStockByAgent(Long agentId);
+    Page<SalesAgentInventoryResponseDto> getStockByAgent(Long agentId,int page, int size);
 
     SalesAgentInventoryResponseDto getStockById(Long id);
 
-    SalesAgentInventoryResponseDto transferFromStockOveral(SalesAgentInventoryRequestDto dto);
 }

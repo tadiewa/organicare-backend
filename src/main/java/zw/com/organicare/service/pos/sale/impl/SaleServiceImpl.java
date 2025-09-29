@@ -10,11 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zw.com.organicare.api.PatientController;
 import zw.com.organicare.constants.MovementType;
+import zw.com.organicare.dto.finance.FinanceDetailResponseDto;
 import zw.com.organicare.dto.payment.PaymentRequestDto;
-import zw.com.organicare.dto.sale.SaleLineRequestDto;
-import zw.com.organicare.dto.sale.SaleRequestDto;
-import zw.com.organicare.dto.sale.SaleResponseDto;
+import zw.com.organicare.dto.sale.*;
 import zw.com.organicare.exception.InsufficientStockException;
 import zw.com.organicare.exception.ResourceNotFoundException;
 import zw.com.organicare.exception.UserNotFound;
@@ -22,11 +22,15 @@ import zw.com.organicare.model.*;
 import zw.com.organicare.repository.*;
 import zw.com.organicare.service.authService.AuthService;
 import zw.com.organicare.service.pos.sale.SaleService;
+import zw.com.organicare.utils.CodeGeneratorService;
+import zw.com.organicare.utils.ProductCodeGenerator;
 import zw.com.organicare.utils.SaleMapper;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -44,7 +48,12 @@ public class SaleServiceImpl implements SaleService {
     private final StockMovementRepository stockMovementRepository;
     private final UncollectedChangeRepository uncollectedChangeRepository;
     private final AuthService authService;
-    @Transactional
+    private final CodeGeneratorService codeGenerator;
+    private final FinanceDetailRepository financeDetailRepository;
+    private final BranchRepository branchRepository;
+
+
+
     public SaleResponseDto createSale(SaleRequestDto request) {
         // 1. load agent
 
@@ -62,6 +71,12 @@ public class SaleServiceImpl implements SaleService {
         if (request.getPatientId() != null) {
             patient = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+        }
+
+        User np = null;
+        if (request.getNpId() != null) {
+            np = userRepository.findById(request.getNpId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Nurse Practitioner not found"));
         }
    log.info("branch of current user-------------------------------> {}", currentUser.getBranch());
         // 2. create Sale header and link patient
@@ -149,7 +164,10 @@ public class SaleServiceImpl implements SaleService {
         }
 
         sale.setTotalAmountDue(totalDue);
+        sale.setNp(request.getNpId() != null ? np : null);
         sale.setTotalPaid(totalPaid);
+        sale.setDiscount(request.getDiscount() != null ? BigDecimal.valueOf(request.getDiscount()) : BigDecimal.ZERO);
+        sale.setReceiptNumber(generateUniqueSaleCode());
 
         // 5. change & uncollected change handling
         BigDecimal diff = totalPaid.subtract(totalDue);
@@ -189,8 +207,125 @@ public class SaleServiceImpl implements SaleService {
         }
 
         Sale saved = saleRepository.save(sale);
+        financialSplit(sale);
         return SaleMapper.toDto(saved);
     }
+
+
+    FinanceDetailResponseDto financialSplit(Sale sale){
+        FinanceDetail financeBreak = new FinanceDetail();
+
+        Patient patient = patientRepository.findById(sale.getPatient().getPatientId())
+                .orElseThrow(() -> new UserNotFound("Patient not found with id: " + sale.getPatient().getPatientId()));
+       List <Payment> payment =  paymentRepository.findBySaleId(sale.getId());
+       if(payment.isEmpty()) {
+           throw new ResourceNotFoundException("Payment not found for sale id: " + sale.getId());
+       }
+
+        List<String> paymentTypes = payment.stream()
+                .map(p -> p.getPaymentType().getName())
+                .distinct()
+                .toList();
+
+        log.info("Payment types:--------------------------------> {}", paymentTypes);
+
+        Branch branch = branchRepository.findById(sale.getBranch().getBranchId())
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + sale.getBranch().getBranchId()));
+        User saleAgent = userRepository.findById(sale.getAgent().getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sales agent not found with id: " + sale.getAgent().getUserId()));
+        User np = userRepository.findById(sale.getAgent().getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sales agent not found with id: " + sale.getAgent().getUserId()));
+
+        String rpName = patientRepository.findRpNameByPatientId(sale.getPatient().getPatientId());
+        financeBreak.setReceiptNumber(sale.getReceiptNumber());
+        financeBreak.setChange(sale.getUncollectedChange());
+        //amount given by the customer before change
+        BigDecimal  grossCosSales = BigDecimal.ZERO;
+        financeBreak.setAmountTendered(sale.getTotalPaid());
+        BigDecimal cosDf = BigDecimal.ZERO;
+        BigDecimal netRpSales = BigDecimal.ZERO;
+        BigDecimal rpDf = BigDecimal.ZERO;
+        BigDecimal grossRpSales = BigDecimal.ZERO;
+        BigDecimal discount = sale.getDiscount();
+        BigDecimal cosConsSplit =  BigDecimal.valueOf(15);
+        // total amount for the products sale
+        financeBreak.setTotalSales(sale.getTotalAmountDue());
+        financeBreak.setPatientName(patient.getFullName());
+        financeBreak.setBranchName(branch.getBranchName());
+        financeBreak.setSalesAgentName(saleAgent.getFullName());
+        financeBreak.setDateCreated(sale.getSaleDate().toLocalDate());
+        financeBreak.setRpName(rpName);
+        financeBreak.setDiscount(BigDecimal.ZERO);
+        financeBreak.setPaymentMethod(paymentTypes);
+        financeBreak.setNpName(np.getFullName());
+
+        for(SaleLine lineReq :sale.getSaleLines()){
+            Product product = productRepository.findById(lineReq.getProduct().getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + lineReq.getProduct().getName()));
+
+            financeBreak.setProductName(product.getName());
+            financeBreak.setQuantity(Long.valueOf(lineReq.getQuantity()));
+            if(product.isActive()&& product.isCos()){
+                if(product.getName().equals("Review")|| product.getName().equals("Ultrasound")) {
+                    financeBreak.setGrossCosSales(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                    grossCosSales = grossCosSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                }
+
+                grossCosSales = grossCosSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                cosDf = cosDf.add(BigDecimal.TWO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+
+            }else
+                if(product.isActive()&& product.getName().equals("Consultation")){
+
+                BigDecimal consPrice = lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity()));
+               netRpSales  = netRpSales.add (consPrice.subtract(cosConsSplit).subtract(discount));
+               financeBreak.setNetRpSales(netRpSales);
+
+
+            } else {
+
+                grossRpSales = grossRpSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                rpDf = rpDf.add(BigDecimal.TWO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+            }
+
+
+        }
+        financeBreak.setGrossCosSales(grossCosSales);
+        financeBreak.setCosDf(cosDf);
+        financeBreak.setNetCosSales(grossCosSales.subtract(cosDf));
+        financeBreak.setRpDf(rpDf);
+        financeBreak.setGrossRpSales(grossRpSales);
+        financeBreak.setNetRpSales(grossRpSales.subtract(rpDf).subtract(discount));
+        financeBreak.setTotalDf(rpDf.add(cosDf));
+        financeDetailRepository.save(financeBreak);
+
+        return FinanceDetailResponseDto.builder()
+                .receiptNumber(financeBreak.getReceiptNumber())
+                .change(financeBreak.getChange())
+                .amountTendered(financeBreak.getAmountTendered())
+                .totalSales(financeBreak.getTotalSales())
+                .patientName(financeBreak.getPatientName())
+                .branchName(financeBreak.getBranchName())
+                .salesAgentName(financeBreak.getSalesAgentName())
+                .dateCreated(financeBreak.getDateCreated())
+                .rpName(financeBreak.getRpName())
+                .discount(financeBreak.getDiscount())
+                .paymentMethod(financeBreak.getPaymentMethod())
+                .npName(financeBreak.getNpName())
+                .grossRpSales(financeBreak.getGrossRpSales())
+                .grossCosSales(financeBreak.getGrossCosSales())
+                .netRpSales(financeBreak.getNetRpSales())
+                .netCosSales(financeBreak.getNetCosSales())
+                .quantity(financeBreak.getQuantity())
+                .productName(financeBreak.getProductName())
+                .rpDf(financeBreak.getRpDf())
+                .cosDf(financeBreak.getCosDf())
+                .totalDf(financeBreak.getTotalDf())
+                .build();
+    }
+
+
+
 
     @Override
     public SaleResponseDto getSale(Long saleId) {
@@ -199,6 +334,50 @@ public class SaleServiceImpl implements SaleService {
 
         // 2. Map to DTO
         return SaleMapper.toDto(sale);
+    }
+
+    public List<DailyAgentSalesDto> getAgentTotals(LocalDate date) {
+        return saleRepository.getDailyTotalsByAgent(date);
+    }
+
+    public List<DailyRpSalesDto> getRpTotals(LocalDate date) {
+        return saleRepository.getDailyTotalsByRp(date);
+    }
+
+
+
+    public List<RpSaleDto> getSalesByRpAndDateRange(String rpName, LocalDateTime start, LocalDateTime end) {
+        List<Sale> sales = saleRepository.findSalesWithProductsByRpAndDateRange(rpName, start, end);
+
+        return sales.stream().map(sale -> {
+            List<String> productNames = sale.getSaleLines().stream()
+                    .map(sl -> sl.getProduct().getName())
+                    .toList();
+
+        String referringPracName = patientRepository.findRpNameByPatientId(sale.getPatient().getPatientId());
+            return RpSaleDto.builder()
+                    .rpName(referringPracName)
+                    .saleId(sale.getId())
+                    .totalAmountDue(sale.getTotalAmountDue())
+                    .totalPaid(sale.getTotalPaid())
+                   // .changeGiven(sale.getChangeGiven())
+                    .uncollectedChange(sale.getUncollectedChange())
+                    .saleDate(sale.getSaleDate())
+                    .products(productNames)
+                    .branchName(sale.getBranch().getBranchName())
+                    .agentName(sale.getAgent().getFullName())
+                    .patientName(sale.getPatient().getFullName())
+                    .build();
+        }).toList();
+    }
+
+
+    private String generateUniqueSaleCode() {
+        String code;
+        do {
+            code = codeGenerator.generateSaleReceipt();
+        } while (productRepository.existsByProductCode(code));
+        return code;
     }
 }
 

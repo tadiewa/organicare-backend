@@ -17,6 +17,7 @@ public class SaleMapper {
     public static SaleResponseDto toDto(Sale sale) {
         SaleResponseDto dto = SaleResponseDto.builder()
                 .saleId(sale.getId())
+                .receiptNumber(sale.getReceiptNumber())
                 .patientId(sale.getPatient() != null ? sale.getPatient().getPatientId() : null)
                 .patientName(sale.getPatient() != null ? sale.getPatient().getFullName() : null)
                 .totalAmountDue(sale.getTotalAmountDue())

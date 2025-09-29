@@ -29,5 +29,6 @@ public class ProductCodeGenerator {
     public String generate() {
         return PREFIX + generateRandomSuffix();
     }
+
 }
 

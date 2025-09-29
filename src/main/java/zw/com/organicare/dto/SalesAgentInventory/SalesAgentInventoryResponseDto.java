@@ -7,7 +7,7 @@
 package zw.com.organicare.dto.SalesAgentInventory;
 
 import lombok.*;
-import zw.com.organicare.model.Branch;
+
 
 
 import java.time.LocalDate;
@@ -24,11 +24,11 @@ public class SalesAgentInventoryResponseDto {
     private String productName;
     private String receivedBy;
     private String issuedBy;
-
     private int openingStock;
     private int stockIn;
     private int numberOfProductsSold;
-    private Branch branch;
+    private String branchName;
+    private int closingStock;
     private LocalDate receivedDate;
 
 

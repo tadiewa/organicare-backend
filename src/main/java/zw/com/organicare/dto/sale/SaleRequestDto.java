@@ -20,7 +20,8 @@ import java.util.List;
 public class SaleRequestDto {
 
     private Long patientId;
-   // private Branch branch;
+    private Long npId;
+    private Double discount;
     private boolean changeProvided;
     private List<SaleLineRequestDto> saleLines;
     private List<PaymentRequestDto> payments;

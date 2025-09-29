@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sale_lines")
@@ -36,4 +37,5 @@ public class SaleLine {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    private LocalDateTime createdAt;
 }

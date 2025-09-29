@@ -7,6 +7,7 @@
 package zw.com.organicare.api;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import zw.com.organicare.dto.SalesAgentInventory.SalesAgentInventoryRequestDto;
@@ -22,11 +23,7 @@ public class SalesAgentInventoryController {
 
     private final SalesAgentInventoryService inventoryService;
 
-    // Transfer from StockOveral to Agent
-    @PostMapping("/transfer")
-    public ResponseEntity<SalesAgentInventoryResponseDto> transferStock(@RequestBody SalesAgentInventoryRequestDto dto) {
-        return ResponseEntity.ok(inventoryService.transferFromStockOveral(dto));
-    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<SalesAgentInventoryResponseDto> getStock(@PathVariable Long id) {
@@ -34,8 +31,10 @@ public class SalesAgentInventoryController {
     }
 
     @GetMapping("/agent/{agentId}")
-    public ResponseEntity<List<SalesAgentInventoryResponseDto>> getStockByAgent(@PathVariable Long agentId) {
-        return ResponseEntity.ok(inventoryService.getStockByAgent(agentId));
+    public ResponseEntity<Page<SalesAgentInventoryResponseDto>> getStockByAgent(@PathVariable Long agentId,
+                                                                                @RequestParam(defaultValue = "0") int page,
+                                                                                @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(inventoryService.getStockByAgent(agentId,page,size));
     }
 }
 

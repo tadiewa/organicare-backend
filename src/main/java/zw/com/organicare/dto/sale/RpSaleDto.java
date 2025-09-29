@@ -1,13 +1,13 @@
 /**
  * @author : tadiewa
- * date: 9/17/2025
+ * date: 9/26/2025
  */
 
 
 package zw.com.organicare.dto.sale;
 
+
 import lombok.*;
-import zw.com.organicare.dto.payment.PaymentResponseDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,17 +18,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SaleResponseDto {
+public class RpSaleDto {
+
+    private String rpName;
     private Long saleId;
-    private Long patientId;
-    private String patientName;
     private BigDecimal totalAmountDue;
     private BigDecimal totalPaid;
     private BigDecimal changeGiven;
     private BigDecimal uncollectedChange;
     private LocalDateTime saleDate;
-    private Long agentId;
-    private String receiptNumber;
-    private List<SaleLineResponseDto> saleLines;
-    private List<PaymentResponseDto> payments;
+    private List<String> products; // List of product names
+    private String branchName;
+    private String agentName;
+    private String patientName;
 }

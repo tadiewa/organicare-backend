@@ -26,6 +26,8 @@ public class Sale {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private BigDecimal discount = BigDecimal.ZERO;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = true)
     private Patient patient;
@@ -44,6 +46,7 @@ public class Sale {
 
     private LocalDateTime saleDate = LocalDateTime.now();
 
+    private String receiptNumber;
     @OneToOne
     @JoinColumn(name = "branch_id")
     private Branch branch;
@@ -51,6 +54,10 @@ public class Sale {
     @ManyToOne
     @JoinColumn(name = "sales_agent_id")
     private User agent;
+
+    @ManyToOne
+    @JoinColumn(name = "np_id")
+    private User Np;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
