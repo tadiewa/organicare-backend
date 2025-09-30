@@ -19,6 +19,7 @@ public class ProductMapper {
                 .price(dto.getPrice())
                 .category(dto.getCategory())
                 .isActive(dto.isActive())
+                .isCos(dto.isCos())
                 .build();
     }
 
@@ -31,6 +32,7 @@ public class ProductMapper {
                 .price(product.getPrice())
                 .category(product.getCategory())
                 .isActive(product.isActive())
+                .isCos(product.isCos())
                 .build();
     }
 }

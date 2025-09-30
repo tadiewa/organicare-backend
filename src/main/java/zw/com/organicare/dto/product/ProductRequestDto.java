@@ -21,4 +21,5 @@ public class ProductRequestDto {
     private BigDecimal price;
     private String category;
     private boolean isActive;
+    private boolean isCos;
 }

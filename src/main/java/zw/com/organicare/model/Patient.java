@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import zw.com.organicare.constants.Gender;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +27,8 @@ public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long patientId;
-    private  String fullName;
-    private Date dob;
+    private String fullName;
+    private LocalDate dob;
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private String contactInfo;

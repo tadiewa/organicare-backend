@@ -32,7 +32,7 @@ public class UncollectedChange {
     private boolean resolved = false;
     private LocalDateTime createdAt = LocalDateTime.now();
     private String notes;
-
+    private String receiptNumber;
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = true)
     private Patient patient;

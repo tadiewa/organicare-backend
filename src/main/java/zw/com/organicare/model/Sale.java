@@ -46,6 +46,8 @@ public class Sale {
 
     private LocalDateTime saleDate = LocalDateTime.now();
 
+    private BigDecimal subTotal = BigDecimal.ZERO;
+
     private String receiptNumber;
     @OneToOne
     @JoinColumn(name = "branch_id")

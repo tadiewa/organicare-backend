@@ -89,6 +89,7 @@ public class SaleServiceImpl implements SaleService {
                 .changeGiven(BigDecimal.ZERO)
                 .uncollectedChange(BigDecimal.ZERO)
                 .branch(currentUser.getBranch())
+                .subTotal(BigDecimal.ZERO)
                // .saleLines(new ArrayList<>())
                // .payments(new ArrayList<>())
                 .build();
@@ -96,6 +97,7 @@ public class SaleServiceImpl implements SaleService {
         sale = saleRepository.save(sale);
 
         BigDecimal totalDue = BigDecimal.ZERO;
+        BigDecimal lineTotal = BigDecimal.ZERO;
 
         // 3. process lines and reduce agent inventory (unchanged)
         for (SaleLineRequestDto lineReq : request.getSaleLines()) {
@@ -118,19 +120,21 @@ public class SaleServiceImpl implements SaleService {
 
             // create sale line
             BigDecimal unitPrice =  product.getPrice();
-            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(lineReq.getQuantity()));
+           BigDecimal saleLineTotal = unitPrice.multiply(BigDecimal.valueOf(lineReq.getQuantity()));
 
+           //fixed sale line total calculation
+            lineTotal = lineTotal.add(saleLineTotal);
             SaleLine saleLine = SaleLine.builder()
                     .sale(sale)
                     .product(product)
                     .quantity(lineReq.getQuantity())
                     .unitPrice(unitPrice)
-                    .lineTotal(lineTotal)
+                    .lineTotal(saleLineTotal)
+                    .createdAt(LocalDateTime.now())
                     .build();
             saleLineRepository.save(saleLine);
 
             sale.getSaleLines().add(saleLine);
-            totalDue = totalDue.add(lineTotal);
 
             // record stock movement (sale)
             StockMovement movement = StockMovement.builder()
@@ -144,7 +148,8 @@ public class SaleServiceImpl implements SaleService {
                     .build();
             stockMovementRepository.save(movement);
         }
-
+        totalDue = totalDue.add(lineTotal.subtract(request.getDiscount() != null ? BigDecimal.valueOf(request.getDiscount()) : BigDecimal.ZERO));
+        sale.setSubTotal(lineTotal);
         // 4. process payments
         BigDecimal totalPaid = BigDecimal.ZERO;
         for (PaymentRequestDto payReq : request.getPayments()) {
@@ -162,19 +167,21 @@ public class SaleServiceImpl implements SaleService {
             sale.getPayments().add(payment);
             totalPaid = totalPaid.add(payReq.getAmount());
         }
-
+       // sale.setSubTotal(lineTotal);
         sale.setTotalAmountDue(totalDue);
         sale.setNp(request.getNpId() != null ? np : null);
         sale.setTotalPaid(totalPaid);
         sale.setDiscount(request.getDiscount() != null ? BigDecimal.valueOf(request.getDiscount()) : BigDecimal.ZERO);
-        sale.setReceiptNumber(generateUniqueSaleCode());
+        String receiptNumber = generateUniqueSaleCode();
+        sale.setReceiptNumber(receiptNumber);
 
         // 5. change & uncollected change handling
         BigDecimal diff = totalPaid.subtract(totalDue);
-        if (diff.compareTo(BigDecimal.ZERO) < 0) {
-            // Not enough money paid
-            throw new IllegalArgumentException("Insufficient payment: due " + totalDue + ", paid " + totalPaid);
-        }
+
+//         if (diff.compareTo(BigDecimal.ZERO) < 0) {
+//            // Not enough money paid
+//            throw new IllegalArgumentException("Insufficient payment: due " + totalDue + ", paid " + totalPaid);
+//         }
 
         if (diff.compareTo(BigDecimal.ZERO) > 0) {
             // change required
@@ -190,6 +197,7 @@ public class SaleServiceImpl implements SaleService {
                         .resolved(false)
                         .notes("Change not available at sale time")
                         .salesAgent(agent)
+                        .receiptNumber(receiptNumber)
                         .build();
 
                 if (patient != null) {
@@ -247,6 +255,7 @@ public class SaleServiceImpl implements SaleService {
         BigDecimal rpDf = BigDecimal.ZERO;
         BigDecimal grossRpSales = BigDecimal.ZERO;
         BigDecimal discount = sale.getDiscount();
+        financeBreak.setDiscount(discount);
         BigDecimal cosConsSplit =  BigDecimal.valueOf(15);
         // total amount for the products sale
         financeBreak.setTotalSales(sale.getTotalAmountDue());
@@ -267,35 +276,35 @@ public class SaleServiceImpl implements SaleService {
             financeBreak.setQuantity(Long.valueOf(lineReq.getQuantity()));
             if(product.isActive()&& product.isCos()){
                 if(product.getName().equals("Review")|| product.getName().equals("Ultrasound")) {
-                    financeBreak.setGrossCosSales(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
                     grossCosSales = grossCosSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
-                }
+                    cosDf = cosDf.add(BigDecimal.ZERO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                }else {
 
-                grossCosSales = grossCosSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
-                cosDf = cosDf.add(BigDecimal.TWO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                    grossCosSales = grossCosSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                    cosDf = cosDf.add(BigDecimal.TWO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                }
 
             }else
                 if(product.isActive()&& product.getName().equals("Consultation")){
 
                 BigDecimal consPrice = lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity()));
-               netRpSales  = netRpSales.add (consPrice.subtract(cosConsSplit).subtract(discount));
-               financeBreak.setNetRpSales(netRpSales);
-
+                grossRpSales = grossRpSales.add(consPrice);
+                netRpSales  = netRpSales.add (grossRpSales.subtract(cosConsSplit).subtract(discount));
+                financeBreak.setNetRpSales(netRpSales);
+                financeBreak.setCosConsultationSplit(cosConsSplit);
 
             } else {
 
                 grossRpSales = grossRpSales.add(lineReq.getUnitPrice().multiply(BigDecimal.valueOf(lineReq.getQuantity())));
                 rpDf = rpDf.add(BigDecimal.TWO.multiply(BigDecimal.valueOf(lineReq.getQuantity())));
+                financeBreak.setNetRpSales(grossRpSales.subtract(rpDf).subtract(discount));
             }
-
-
         }
         financeBreak.setGrossCosSales(grossCosSales);
         financeBreak.setCosDf(cosDf);
         financeBreak.setNetCosSales(grossCosSales.subtract(cosDf));
         financeBreak.setRpDf(rpDf);
         financeBreak.setGrossRpSales(grossRpSales);
-        financeBreak.setNetRpSales(grossRpSales.subtract(rpDf).subtract(discount));
         financeBreak.setTotalDf(rpDf.add(cosDf));
         financeDetailRepository.save(financeBreak);
 

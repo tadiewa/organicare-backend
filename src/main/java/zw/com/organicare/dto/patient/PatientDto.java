@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 
@@ -22,8 +23,8 @@ public class PatientDto {
 
     private long patientId;
     private String fullName;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
-    private Date dob;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate dob;
     private String gender;
     private String contactInfo;
     private String address;
