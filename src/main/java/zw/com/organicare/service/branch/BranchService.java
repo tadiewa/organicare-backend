@@ -13,5 +13,6 @@ import zw.com.organicare.dto.branch.BranchStatusUpdateDto;
 public interface BranchService {
     BranchResponseDto createBranch(BranchRequestDto requestDto);
     BranchResponseDto updateBranchStatus(Long branchId, BranchStatusUpdateDto dto);
+    BranchResponseDto getBranch(Long BranchId);
 
 }

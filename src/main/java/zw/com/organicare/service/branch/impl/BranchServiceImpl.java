@@ -47,4 +47,15 @@ public class BranchServiceImpl implements BranchService {
         return BranchMapper.toDto(updated);
     }
 
+    @Override
+    public BranchResponseDto getBranch(Long branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + branchId));
+
+        if(!branch.isActive())
+            throw new ResourceNotFoundException("branch not configured");
+
+        return BranchMapper.toDto(branch);
+    }
+
 }

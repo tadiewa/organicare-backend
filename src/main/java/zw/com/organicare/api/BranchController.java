@@ -36,4 +36,13 @@ public class BranchController {
         BranchResponseDto response = branchService.updateBranchStatus(branchId, dto);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{branchId}")
+    public  ResponseEntity<BranchResponseDto> getBranch(@PathVariable Long branchId){
+
+        BranchResponseDto response = branchService.getBranch(branchId);
+        return ResponseEntity.ok(response);
+
+
+    }
 }
