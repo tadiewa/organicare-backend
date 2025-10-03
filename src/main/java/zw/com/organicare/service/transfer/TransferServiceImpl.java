@@ -26,6 +26,7 @@ import zw.com.organicare.service.authService.AuthService;
 import zw.com.organicare.utils.TransferMapper;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -116,9 +117,11 @@ public class TransferServiceImpl implements TransferService {
 
             reducedAmount= reducedAmount.add(fromAccount.getAccountBalance().subtract(transfer.getAmount()));
             fromAccount.setAccountBalance(reducedAmount);
+            fromAccount.setClosingDate(LocalDate.now());
 
             increaseAmount =increaseAmount.add(toAccount.getAccountBalance().add(transfer.getAmount()));
             toAccount.setAccountBalance(increaseAmount);
+            toAccount.setClosingDate(LocalDate.now());
 
         } else {
             transfer.setStatus(TransferStatus.REJECTED);

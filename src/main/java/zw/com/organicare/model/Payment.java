@@ -34,6 +34,10 @@ public class Payment {
     @JoinColumn(name = "payment_type_id", nullable = false)
     private PaymentType paymentType;
 
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = true)
+    private Account account;
+
     private LocalDateTime paymentDate = LocalDateTime.now();
 }
 

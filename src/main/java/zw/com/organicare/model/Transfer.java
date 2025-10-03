@@ -35,16 +35,16 @@ public class Transfer {
     private String  note ;
     @ManyToOne
     @JoinColumn(name = "receivedby_id")
-    User receivedby ;
+   private  User receivedby ;
     @ManyToOne
     @JoinColumn(name = "requestedby_id")
-    User requestedby ;
+    private  User requestedby ;
     @ManyToOne
     @JoinColumn(name = "authorizedby_id")
-    User authorizedby ;
-    String externalReceiverName;
+    private User authorizedby ;
+    private  String externalReceiverName;
     @Column(name ="id")
-    String externalReceiverId;
+    private String externalReceiverId;
     private  LocalDateTime createdOn;
     @Enumerated(EnumType.STRING)
     private TransferStatus status;

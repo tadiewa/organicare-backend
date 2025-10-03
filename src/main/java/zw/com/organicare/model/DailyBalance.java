@@ -1,6 +1,6 @@
 /**
  * @author : tadiewa
- * date: 10/2/2025
+ * date: 10/3/2025
  */
 
 
@@ -18,16 +18,15 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "accounts")
-public class Account {
+@Table(name = "daily_balance")
+public class DailyBalance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
-    private String accountName;
-    private BigDecimal accountBalance =BigDecimal.ZERO;
-    private LocalDate closingDate;
+    private Long id;
 
-    public Account(Long accountId) {
-        this.accountId = accountId;
-    }
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+    private LocalDate date;
+    private BigDecimal closingBalance;
 }
