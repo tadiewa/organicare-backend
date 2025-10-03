@@ -29,5 +29,6 @@ public class ExpenseResponseDto {
     String receivedBy;
     String branch;
     String expenseType;
+    String department;
     boolean isApproved;
 }

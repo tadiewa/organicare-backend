@@ -32,6 +32,7 @@ public class Expense {
     String receivedBy;
     boolean isApproved;
     String expenseType;
+    String department;
     String branch;
     @ManyToOne
     @JoinColumn(name = "expense_type_id")

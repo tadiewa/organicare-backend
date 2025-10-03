@@ -22,4 +22,5 @@ public class ExpenseRequest {
   private  BigDecimal amount;
   private   Long expenseType;
   private  Long receivedBy;
+  private String department;
 }
