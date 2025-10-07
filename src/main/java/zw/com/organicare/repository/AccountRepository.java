@@ -14,11 +14,12 @@ import zw.com.organicare.model.Account;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account,Long> {
 
-    Account findAccountByAccountName(String name);
+   Optional<Account> findAccountByAccountName(String name);
     @Query("""
         SELECT COALESCE(a.accountBalance, 0)
         FROM Account a

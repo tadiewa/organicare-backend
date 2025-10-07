@@ -8,6 +8,9 @@ package zw.com.organicare.service.branch.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zw.com.organicare.dto.branch.BranchRequestDto;
@@ -52,10 +55,26 @@ public class BranchServiceImpl implements BranchService {
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + branchId));
 
-        if(!branch.isActive())
+        if (!branch.isActive())
             throw new ResourceNotFoundException("branch not configured");
 
         return BranchMapper.toDto(branch);
     }
 
+    @Override
+    public Page<BranchResponseDto> getAllBranch(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Branch> branches = branchRepository.findAll(pageable);
+        if (branches.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return branches.map(branch -> BranchResponseDto.builder()
+                .branchId(branch.getBranchId())
+                .branchCode(branch.getBranchCode())
+                .branchName(branch.getBranchName())
+                .isActive(branch.isActive())
+                .build());
+
+
+    }
 }

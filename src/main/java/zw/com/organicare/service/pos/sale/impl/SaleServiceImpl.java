@@ -51,7 +51,7 @@ public class SaleServiceImpl implements SaleService {
     private final CodeGeneratorService codeGenerator;
     private final FinanceDetailRepository financeDetailRepository;
     private final BranchRepository branchRepository;
-
+    private final AccountRepository accountRepository;
 
 
     public SaleResponseDto createSale(SaleRequestDto request) {
@@ -156,11 +156,15 @@ public class SaleServiceImpl implements SaleService {
             PaymentType type = paymentTypeRepository.findById(payReq.getPaymentTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("PaymentType not found"));
 
+            Account  account = accountRepository.findAccountByAccountName(type.getName())
+                            .orElseThrow(()-> new ResourceNotFoundException("No account for the payment type:" + " "+ type.getName()));
+
             Payment payment = Payment.builder()
                     .sale(sale)
                     .paymentType(type)
                     .amount(payReq.getAmount())
                     .paymentDate(LocalDateTime.now())
+                    .account(account)
                     .build();
             paymentRepository.save(payment);
 

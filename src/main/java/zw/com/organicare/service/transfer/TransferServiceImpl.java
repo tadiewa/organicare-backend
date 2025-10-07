@@ -94,8 +94,10 @@ public class TransferServiceImpl implements TransferService {
                 .orElseThrow(() -> new ResourceNotFoundException("Transfer not found"));
         BigDecimal reducedAmount= BigDecimal.ZERO;
         BigDecimal increaseAmount= BigDecimal.ZERO;
-        Account fromAccount = accountRepository.findAccountByAccountName(transfer.getTransferredFrom().getAccountName());
-        Account toAccount = accountRepository.findAccountByAccountName(transfer.getTransferredTo().getAccountName());
+        Account fromAccount = accountRepository.findAccountByAccountName(transfer.getTransferredFrom().getAccountName())
+                .orElseThrow(()-> new ResourceNotFoundException("No account found"));
+        Account toAccount = accountRepository.findAccountByAccountName(transfer.getTransferredTo().getAccountName())
+                .orElseThrow(()-> new ResourceNotFoundException("No account found"));
 
         if(transfer.getAmount().compareTo(fromAccount.getAccountBalance()) > 0) {
 

@@ -8,6 +8,7 @@ package zw.com.organicare.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import zw.com.organicare.dto.branch.BranchRequestDto;
@@ -42,7 +43,13 @@ public class BranchController {
 
         BranchResponseDto response = branchService.getBranch(branchId);
         return ResponseEntity.ok(response);
+    }
 
+    @GetMapping("/all")
+    public  ResponseEntity <Page<BranchResponseDto>> getAllBranch(@RequestParam (defaultValue = "10")int page,
+                                                                  @RequestParam (defaultValue = "10")int size){
 
+       Page<BranchResponseDto> response = branchService.getAllBranch(page , size);
+        return ResponseEntity.ok(response);
     }
 }
